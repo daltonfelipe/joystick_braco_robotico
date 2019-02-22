@@ -1,4 +1,10 @@
 import inputs
+from gpio import ServoPWM
+
+servo_base = ServoPWM(18)
+servo_height = ServoPWM(12)
+servo_garra = ServoPWM(13)
+servo_frente = ServoPWM(19)
 
 pads = inputs.devices.gamepads
 
@@ -26,32 +32,45 @@ ROLETA 2
 """
 deadzone = 128
 
+def map_val( x,  in_min,  in_max,  out_min,  out_max):
+    return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
+
 def base(state):
-    if state < deadzone:
-        print('Esq: ',state)
-    elif state > deadzone:
-        print('Dir: ', state)
+    s = map_val(state, 0, 255, 0, 180)
+    print("base: ",s)
+    servo_base.set_angle(s)
+
+
+def frente(state):
+    s = map_val(state, 0, 255, 5, 55)
+    print("frente: ", s)
+    servo_frente.set_angle(s)
+    
+
+def garra(state):
+    if state == 1:
+        servo_garra.set_angle(90)
     else:
-        print("Deadzone: ", state)
+        servo_garra.set_angle(20)
 
 
-def front(state):
-    if state < deadzone:
-        print('Esq')
-    if state > deadzone:
-        print('Dir') 
+def height(state):
+    s = map_val(state, 0, 255, 0, 80)
+    servo_height.set_angle(s)
+    
 
 
 COMMANDS = {
-    'ABS_X': None,
-    'ABS_Y': None,
-    'ABS_RZ': None,
+    'ABS_X': base,
+    'ABS_Y': frente,
+    'ABS_RZ': height,
     'ABS_Z': base,
+    'BTN_TOP2': garra
 }
 
 
 if len(pads) == 0:
-    raise Exception('Nenhum joystick encontrado!')
+    raise Exception('Nenhum joystick encontrado! Reconecte e tente novamente!')
 
 while True:
     events = inputs.get_gamepad()
@@ -59,7 +78,14 @@ while True:
         #print("Tipo: {}\n\tCodigo: {}\n\tEstado: {}\n".format(event.ev_type,event.code, event.state))
         cmd = COMMANDS.get(event.code)
         if callable(cmd):
-            print(cmd.__name__,":")
-            cmd(event.state)
+            s = event.state
+            if s == deadzone:
+                s = 0
+            elif s < deadzone:
+                s /= -deadzone
+            else:
+                s /= 255
+            print(s)
+            #cmd(event.state)
         
                 

@@ -9,18 +9,7 @@ class ServoPWM():
         #Ajuste estes valores para obter o intervalo completo do movimento do servo
         deg_0_pulse   = 0.5
         deg_180_pulse = 2.0
-        f = 25
-import RPi.GPIO as GPIO
-import time
-
-
-class ServoPWM():
-
-    def __init__(self, pin):
-        #Ajuste estes valores para obter o intervalo completo do movimento do servo
-        deg_0_pulse   = 0.5
-        deg_180_pulse = 2.0
-        f = 25
+        f = 50
         
         # Faca alguns calculos dos parametros da largura do pulso
         period = 1000/f
@@ -33,13 +22,15 @@ class ServoPWM():
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(pin,GPIO.OUT)
         self.pwm = GPIO.PWM(pin,f)
-        self.pwm.start(0)
+        self.pwm.start(2.5)
 
     def set_angle(self, angle):
         duty = self.deg_0_duty + (angle/180.0)* self.duty_range
         self.pwm.ChangeDutyCycle(duty)
 
+
 class Led():
+
     def __init__(self, pin):
         self.pin = pin
         GPIO.setmode(GPIO.BCM)

@@ -1,5 +1,5 @@
 import inputs
-from gpio import ServoPWM
+from gpio import ServoPWM, GPIO
 
 servo_base = ServoPWM(18)
 servo_height = ServoPWM(12)
@@ -36,27 +36,30 @@ def map_val( x,  in_min,  in_max,  out_min,  out_max):
     return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
 
 def base(state):
-    s = map_val(state, 0, 255, 0, 180)
-    print("base: ",s)
+    s = map_val(state, -1, 1, 0, 180)
     servo_base.set_angle(s)
+    print("base: ",s)
 
 
 def frente(state):
-    s = map_val(state, 0, 255, 5, 55)
-    print("frente: ", s)
+    s = map_val(-state, -1, 1, 10, 55)
     servo_frente.set_angle(s)
+    print("frente: ", s)
     
 
 def garra(state):
-    if state == 1:
+    if state == 1.0:
         servo_garra.set_angle(90)
+        print('garra: aberta')
     else:
         servo_garra.set_angle(20)
+        print('garra: fechada')
 
 
 def height(state):
-    s = map_val(state, 0, 255, 0, 80)
+    s = map_val(-state, -1, 1, 0, 70)
     servo_height.set_angle(s)
+    print('height: ', s)
     
 
 
@@ -72,20 +75,16 @@ COMMANDS = {
 if len(pads) == 0:
     raise Exception('Nenhum joystick encontrado! Reconecte e tente novamente!')
 
-while True:
-    events = inputs.get_gamepad()
-    for event in events:
-        #print("Tipo: {}\n\tCodigo: {}\n\tEstado: {}\n".format(event.ev_type,event.code, event.state))
-        cmd = COMMANDS.get(event.code)
-        if callable(cmd):
-            s = event.state
-            if s == deadzone:
-                s = 0
-            elif s < deadzone:
-                s /= -deadzone
-            else:
-                s /= 255
-            print(s)
-            #cmd(event.state)
-        
-                
+try:
+    while True:
+        events = inputs.get_gamepad()
+        for event in events:
+            #print("Tipo: {}\n\tCodigo: {}\n\tEstado: {}\n".format(event.ev_type,event.code, event.state))
+            cmd = COMMANDS.get(event.code)
+            if callable(cmd):
+                s = event.state
+                if event.state != 1:
+                    s = (event.state - deadzone)/deadzone
+                cmd(s)
+except:
+    GPIO.cleanup()

@@ -22,7 +22,7 @@ class ServoPWM():
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(pin,GPIO.OUT)
         self.pwm = GPIO.PWM(pin,f)
-        self.pwm.start(2.5)
+        self.pwm.start(0)
 
     def set_angle(self, angle):
         duty = self.deg_0_duty + (angle/180.0)* self.duty_range

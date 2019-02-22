@@ -1,4 +1,4 @@
-import inputs
+import inputs, time
 from gpio import ServoPWM, GPIO
 
 servo_base = ServoPWM(18)
@@ -36,7 +36,7 @@ def map_val( x,  in_min,  in_max,  out_min,  out_max):
     return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
 
 def base(state):
-    s = map_val(state, -1, 1, 0, 180)
+    s = map_val(state, -1, 1, 0, 140)
     servo_base.set_angle(s)
     print("base: ",s)
 
@@ -86,5 +86,6 @@ try:
                 if event.state != 1:
                     s = (event.state - deadzone)/deadzone
                 cmd(s)
+                time.sleep(0.02)
 except:
     GPIO.cleanup()
